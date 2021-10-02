@@ -1,0 +1,39 @@
+<nav class="navbar navbar-expand-sm navbar-dark bg-dark fixed-top">
+    <div class="container-lg navContainer">
+        <a class="navbar-brand" href="/">shoppingkart</a>
+        <form class=" container-sm">
+            <div class='input-group '>
+                <input class="form-control" type="search" placeholder="Search" aria-label="Search" id='navbarsearchinput'>
+                <button class="btn btn-primary" type="submit">Search</button>
+            </div>
+        </form>
+        <ul class="navbar-nav me-auto">
+            <li class="nav-item dropdown">
+                <!-- Display username if authenticated -->
+                <% if(user){ %>
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarScrollingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <%= user %>
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                        <li><a class="dropdown-item" href="/users/logout">Logout</a></li>
+                        <% } else { %>
+                            <a class="nav-link dropdown-toggle" href="" id="navbarScrollingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Login
+                        </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                                <li><a class="dropdown-item" href="/users/login"><strong>Already customer? </strong>Login</a></li>
+                                <li><a class="dropdown-item" href="/users/register"><strong>New customer? </strong>Signup</a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <% } %>
+                                    <li><a class="dropdown-item" href="#">My profile</a></li>
+                                    <li><a class="dropdown-item" href="#">Orders</a></li>
+                            </ul>
+            </li>
+            <li class='nav-item'>
+                <a class='nav-link' href='/cart'>Cart</a>
+            </li>
+            </ul>
+    </div>
+</nav>

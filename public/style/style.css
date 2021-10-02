@@ -1,0 +1,36 @@
+/* .navContainer {
+    width: 70rem !important;
+} */
+
+
+/*Global styles*/
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+
+/*index and cart page content style*/
+
+.mainContent {
+    margin: 60px;
+}
+
+.cards {
+    margin-top: 20px;
+}
+
+
+/*login and signup page style*/
+
+.main-heading {
+    text-align: center;
+}
+
+.main-box {
+    width: 28rem;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+}
