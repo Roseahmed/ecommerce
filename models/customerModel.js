@@ -5,13 +5,16 @@ const customerSchema = new mongoose.Schema({
     password: String,
     email: String,
     contact_no: Number,
-    OrderDetails: [{
-        order_id: String,
+    orderDetails: [{
+        _id: false,
+        orderId: String,
         payment_id: String,
-        status: Boolean,
         amount: Number,
+        createdAt: Date,
+        status: String,
         orderedItems: [{
-            _id: String,
+            _id: false,
+            id: String,
             name: String,
             price: String,
             quantity: Number

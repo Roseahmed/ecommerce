@@ -6,9 +6,6 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const passport = require("passport");
 const flash = require("connect-flash");
-const Razorpay = require('razorpay');
-const crypto = require('crypto');
-const hmac = crypto.createHmac('sha256', process.env.KEY_SECRETS);
 
 const app = express();
 const port = 3000;
@@ -36,11 +33,6 @@ mongoose.connect(mongoUrl, {
     } else {
         console.log(err);
     }
-});
-
-const razorpay = new Razorpay({
-    key_id: process.env.KEY_ID,
-    key_secret: process.env.KEY_SECRETS
 });
 
 //store session data in database
@@ -92,16 +84,16 @@ app.use("/order", require("./routes/orderRoutes"));
 //     });
 // });
 
-app.post('/is-order-complete', (req, res) => {
-    console.log(req.body);
-    hmac.update(orderId + "|" + req.body.razorpay_payment_id);
-    let generatedSignature = hmac.digest('hex');
-    if (generatedSignature === req.body.razorpay_signature) {
-        res.send('Payment successfull.');
-    } else {
-        res.send('Payment not valid.');
-    }
-});
+// app.post('/is-order-complete', (req, res) => {
+//     console.log(req.body);
+//     hmac.update(orderId + "|" + req.body.razorpay_payment_id);
+//     let generatedSignature = hmac.digest('hex');
+//     if (generatedSignature === req.body.razorpay_signature) {
+//         res.send('Payment successfull.');
+//     } else {
+//         res.send('Payment not valid.');
+//     }
+// });
 
 app.listen(port, (err) => {
     if (!err) {

@@ -34,7 +34,7 @@ const fetchAll = async(req, res) => {
             res.render('cart', { user: currentUser.name, items: userCart, totalAmount: totalAmount });
         } else {
             const sessionShoppingCart = req.session.shoppingCart;
-            console.log("Items in current session: ", sessionShoppingCart);
+            // console.log("Items in current session: ", sessionShoppingCart);
             res.render('cart', { user: "", items: sessionShoppingCart, totalAmount: [{}] });
         }
     } catch (err) {
@@ -117,9 +117,47 @@ const delCartItems = (req, res) => {
     }
 }
 
-const updateQuantity = (req, res) => {
+const updateQuantity = async(req, res) => {
     const bookId = req.params.id;
-    console.log("update quantity bookId: ", bookId);
+    const reqQuantity = Number(req.body.quantity);
+    // console.log("Requested bookId: ", bookId);
+    // console.log("Quantity: ", reqQuantity);
+    try {
+        //check the total stock avaiable
+        const totalStock = await bookModel.findOne({ _id: bookId }, "-_id stock");
+        if (reqQuantity > totalStock.stock) {
+            console.log("Request quantity unavaiable");
+            return res.json({
+                msg: "Requested quantity unavailable!!!",
+                status: false,
+                totalStock: totalStock.stock
+            });
+        }
+        if (req.isAuthenticated()) {
+            const currentUser = req.user.id;
+            const update = await cartModel.updateOne({ _id: currentUser, "cartItems._id": bookId }, {
+                $set: { 'cartItems.$.quantity': reqQuantity }
+            });
+            console.log("Quantity update status: ", update);
+            if (update.modifiedCount > 0) {
+                return res.json({ status: true });
+            }
+        }
+
+        //for anonymous users
+        const cart = req.session.shoppingCart;
+        for (let i = 0; i < cart.cartItems.length; i++) {
+            if (cart.cartItems[i]._id === bookId) {
+                req.session.shoppingCart.cartItems[i].quantity = reqQuantity;
+                console.log("Quantity updated in session shoppingCart");
+                return res.json({ status: true });
+            }
+        }
+
+    } catch (err) {
+        console.log(err);
+        res.json(err);
+    }
 }
 
 module.exports = {
