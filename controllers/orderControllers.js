@@ -1,8 +1,9 @@
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
-const hmac = crypto.createHmac('sha256', process.env.KEY_SECRETS);
-const customerModel = require("../models/customerModel");
-const bookModel = require("../models/bookModel");
+const orderModel = require("../models/orderModel");
+const cartModel = require("../models/cartModel");
+const bookModel = require("../models/itemModel");
+const itemModel = require("../models/itemModel");
 
 //configure razorpay
 const razorpay = new Razorpay({
@@ -13,19 +14,38 @@ const razorpay = new Razorpay({
 const createOrder = async(req, res) => {
     if (req.isAuthenticated()) {
         try {
-            // const { amount, cartItems } = req.body;
-            // console.log(amount, cartItems);
             const totalAmount = Number(req.body.amount);
             // console.log(totalAmount);
+            currentUser = req.user._id;
+
             const options = {
                 amount: totalAmount * 100,
                 currency: "INR",
                 receipt: ""
             };
+            //create order
             const order = await razorpay.orders.create(options);
             console.log("Order created with details: ", order);
-            currentUser = req.user._id;
-            const storeOrder = await customerModel.updateOne({ _id: currentUser }, {
+
+            //Check if this is first order for current user
+            const checkOrder = await orderModel.findOne({
+                _id: currentUser
+            }, '_id');
+
+            //if first order then create order model for current user.
+            if (!checkOrder) {
+                const newOrderModel = new orderModel({
+                    _id: currentUser,
+                    name: req.user.name
+                });
+                const createOrderModel = await newOrderModel.save();
+                console.log("Order model created with details: ", createOrderModel);
+            }
+
+            //store the orders details
+            const storeOrder = await orderModel.updateOne({
+                _id: currentUser
+            }, {
                 $push: {
                     orderDetails: {
                         orderId: order.id,
@@ -50,39 +70,80 @@ const createOrder = async(req, res) => {
 const verifyOrder = async(req, res) => {
     if (req.isAuthenticated()) {
         try {
-            console.log("Payment verification data:", req.body);
-            // const { paymentId, orderId, signature } = req.body;
-            // console.log(paymentId, orderId, signature);
-            // const orderId = await customerModel.findOne({
-            //     _id: req.user._id,
-            //     // 'orderDetials.orderId': req.body.razorpay_order_id
-            // }, {
-            //     _id: 0,
-            //     orderDetails: {
-            //         $elemMatch: {
-            //             orderId: req.body.razorpay_order_id
-            //         }
-            //     }
-            // });
+            const currentUser = req.user._id;
+            const {
+                razorpay_payment_id,
+                razorpay_order_id,
+                razorpay_signature
+            } = req.body;
+            // console.log(req.body);
 
-            const orderId = await customerModel.findOne({
-                _id: req.user._id,
+            //find the order id to compare with razorpay_order_id
+            const order = await orderModel.findOne({
+                _id: currentUser
+            }, {
+                _id: 0,
                 orderDetails: {
                     $elemMatch: {
-                        orderId: req.body.razorpay_order_id
+                        orderId: razorpay_order_id
                     }
                 }
-            }, {
-                'orderDetails.orderId': req.body.razorpay_order_id
-            })
-            console.log(orderId);
-            // hmac.update(orderId + "|" + req.body.razorpay_payment_id);
-            // let generatedSignature = hmac.digest('hex');
-            // if (generatedSignature === req.body.razorpay_signature) {
-            //     res.send('Payment successfull.');
-            // } else {
-            //     res.send('Payment not valid.');
-            // }
+            });
+            const orderId = order.orderDetails[0].orderId;
+            //console.log("Current user orderId: ", orderId);
+
+            //verfiy the order details with the help of crypto
+            const hmac = crypto.createHmac('sha256', process.env.KEY_SECRETS);
+            hmac.update(orderId + "|" + razorpay_payment_id);
+            const generatedSignature = hmac.digest('hex');
+            if (generatedSignature === razorpay_signature) {
+
+                //find the current user cart items
+                const userCart = await cartModel.findOne({
+                    _id: currentUser
+                }, {
+                    _id: 0,
+                    name: 0
+                });
+                // console.log("Current user cart Items: ", userCart.cartItems);
+
+                //update the order status in database and store purchased items
+                const storeItems = await orderModel.updateOne({
+                    _id: currentUser
+                }, {
+                    $set: {
+                        'orderDetails.$[orderDetail].paymentId': razorpay_payment_id,
+                        'orderDetails.$[orderDetail].status': 'paid',
+                        'orderDetails.$[orderDetail].products': userCart.cartItems
+                    }
+                }, {
+                    arrayFilters: [{ 'orderDetail.orderId': orderId }]
+                });
+                console.log("Purchased products stored status: ", storeItems);
+
+                //delete the user cart items
+                const delCartItems = await cartModel.updateOne({
+                    _id: currentUser
+                }, {
+                    $set: {
+                        cartItems: []
+                    }
+                });
+                console.log("User cart items delete status: ", delCartItems);
+
+                //update the stock quantity of items
+                userCart.cartItems.forEach(async(item) => {
+                    const updateStock = await itemModel.updateOne({
+                        _id: item._id
+                    }, {
+                        $inc: { stock: -item.quantity }
+                    });
+                    console.log("Stock update status: ", updateStock);
+                });
+                res.json('Payment successfull.');
+            } else {
+                res.json('Payment not valid.');
+            }
         } catch (err) {
             console.log(err);
         }

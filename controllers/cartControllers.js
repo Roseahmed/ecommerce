@@ -1,17 +1,17 @@
 const customerModel = require("../models/customerModel");
-const bookModel = require("../models/bookModel");
+const itemModel = require("../models/itemModel");
 const cartModel = require("../models/cartModel");
 
 const fetchAll = async(req, res) => {
     try {
         if (req.isAuthenticated()) {
             const currentUser = req.user;
-            console.log(currentUser.id);
-            const userCart = await cartModel.findById(currentUser.id);
+            // console.log(currentUser.id);
+            const userCart = await cartModel.findById(currentUser._id);
 
             //aggreagate method to find the totalCart amount
             const totalAmount = await cartModel.aggregate([
-                { $match: { _id: currentUser.id } },
+                { $match: { _id: currentUser._id } },
                 {
                     $project: {
                         _id: "$tempId",
@@ -29,7 +29,7 @@ const fetchAll = async(req, res) => {
                     }
                 }
             ]);
-            console.log("Current user cartItems:", userCart);
+            // console.log("Current user cartItems:", userCart);
             console.log('Total amount: ', totalAmount);
             res.render('cart', { user: currentUser.name, items: userCart, totalAmount: totalAmount });
         } else {
@@ -43,13 +43,20 @@ const fetchAll = async(req, res) => {
 }
 
 const addCartItems = async(req, res) => {
-    const bookId = req.params.id;
     try {
-        const book = await bookModel.findById(bookId, "_id name descp price");
+        const reqItemId = req.params.id;
+        const foundItem = await itemModel.findById(reqItemId, '_id name descp price type ');
+        // console.log("foundItem);
         if (req.isAuthenticated()) {
-            const currentUser = req.user;
-            const cardUpdate = await cartModel.updateOne({ _id: currentUser._id }, {
-                $addToSet: { cartItems: book }
+
+            const currentUser = req.user._id;
+            // add the cart items with requested item
+            const cardUpdate = await cartModel.updateOne({
+                _id: currentUser
+            }, {
+                $addToSet: {
+                    cartItems: foundItem
+                }
             });
             console.log("Card updated status: ", cardUpdate);
             res.json(cardUpdate);
@@ -61,12 +68,13 @@ const addCartItems = async(req, res) => {
             const sessionData = req.session.shoppingCart;
             //shopping cart property
             const cartItems = {
-                _id: book._id,
-                name: book.name,
-                imageUrl: book.imageUrl,
-                descp: book.descp,
-                price: book.price,
-                quantity: 1,
+                _id: foundItem._id,
+                name: foundItem.name,
+                imageUrl: foundItem.imageUrl,
+                descp: foundItem.descp,
+                price: foundItem.price,
+                type: foundItem.type,
+                quantity: 1
             };
             // first check if the session data is defined or not if not then create the session data
             if (typeof sessionData === "undefined") {
@@ -76,7 +84,7 @@ const addCartItems = async(req, res) => {
             }
             // second if session data is defined then check if requested items is already defined in current session data 
             for (let i = 0; i < sessionData.cartItems.length; i++) {
-                if (sessionData.cartItems[i]._id === bookId) {
+                if (sessionData.cartItems[i]._id === reqItemId) {
                     console.log("Items already present in shopping cart");
                     return res.json({ msg: false });
                 }
@@ -93,10 +101,10 @@ const addCartItems = async(req, res) => {
 }
 
 const delCartItems = (req, res) => {
-    const bookId = req.params.id;
+    const reqItemId = req.params.id;
     if (req.isAuthenticated()) {
-        const currentUser = req.session.passport.user;
-        cartModel.updateOne({ _id: currentUser }, { $pull: { cartItems: { _id: bookId } } })
+        const currentUser = req.user._id;
+        cartModel.updateOne({ _id: currentUser }, { $pull: { cartItems: { _id: reqItemId } } })
             .then((deleteCount) => {
                 console.log('Card item delete status:', deleteCount);
                 res.json(deleteCount);
@@ -109,8 +117,9 @@ const delCartItems = (req, res) => {
         // for anonymous users
         const cart = req.session.shoppingCart;
         for (let i = 0; i < cart.cartItems.length; i++) {
-            if (cart.cartItems[i]._id === bookId) {
+            if (cart.cartItems[i]._id === reqItemId) {
                 req.session.shoppingCart.cartItems.splice(i, 1);
+                console.log("Requested item deleted from session cart");
                 return res.json({ msg: true });
             }
         }
@@ -118,13 +127,13 @@ const delCartItems = (req, res) => {
 }
 
 const updateQuantity = async(req, res) => {
-    const bookId = req.params.id;
+    const reqItemId = req.params.id;
     const reqQuantity = Number(req.body.quantity);
-    // console.log("Requested bookId: ", bookId);
+    // console.log("Requested itemId: ", reqItemId);
     // console.log("Quantity: ", reqQuantity);
     try {
         //check the total stock avaiable
-        const totalStock = await bookModel.findOne({ _id: bookId }, "-_id stock");
+        const totalStock = await itemModel.findOne({ _id: reqItemId }, "-_id stock");
         if (reqQuantity > totalStock.stock) {
             console.log("Request quantity unavaiable");
             return res.json({
@@ -134,8 +143,11 @@ const updateQuantity = async(req, res) => {
             });
         }
         if (req.isAuthenticated()) {
-            const currentUser = req.user.id;
-            const update = await cartModel.updateOne({ _id: currentUser, "cartItems._id": bookId }, {
+            const currentUser = req.user._id;
+            const update = await cartModel.updateOne({
+                _id: currentUser,
+                "cartItems._id": reqItemId
+            }, {
                 $set: { 'cartItems.$.quantity': reqQuantity }
             });
             console.log("Quantity update status: ", update);
@@ -147,9 +159,9 @@ const updateQuantity = async(req, res) => {
         //for anonymous users
         const cart = req.session.shoppingCart;
         for (let i = 0; i < cart.cartItems.length; i++) {
-            if (cart.cartItems[i]._id === bookId) {
+            if (cart.cartItems[i]._id === reqItemId) {
                 req.session.shoppingCart.cartItems[i].quantity = reqQuantity;
-                console.log("Quantity updated in session shoppingCart");
+                console.log("Quantity of requested item updated in session cart");
                 return res.json({ status: true });
             }
         }

@@ -1,24 +1,15 @@
 const mongoose = require('mongoose');
 
 const customerSchema = new mongoose.Schema({
-    name: String,
-    password: String,
-    email: String,
-    contact_no: Number,
-    orderDetails: [{
+    name: { type: String },
+    password: { type: String },
+    email: { type: String },
+    contact_no: { type: Number },
+    address: [{
         _id: false,
-        orderId: String,
-        payment_id: String,
-        amount: Number,
-        createdAt: Date,
-        status: String,
-        orderedItems: [{
-            _id: false,
-            id: String,
-            name: String,
-            price: String,
-            quantity: Number
-        }]
+        city: { type: String },
+        state: { type: String },
+        pincode: { type: Number }
     }]
 });
-module.exports = mongoose.model('customer', customerSchema);
+module.exports = mongoose.model("customer", customerSchema);

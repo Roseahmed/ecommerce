@@ -25,7 +25,7 @@ const registerPostReq = (req, res) => {
     });
     newCustomer.save()
         .then((result) => {
-            console.log("New customer registerd successfully with following details: ")
+            console.log("New customer registerd successfully with following details: ");
             console.log(result);
             res.redirect('/users/login');
         })
@@ -41,7 +41,7 @@ const loginGetReq = (req, res) => {
 
 // mixed method that is redirect and custom callback for passport authenticate function
 const loginPostReq = ((req, res) => {
-    const cart = req.session.shoppingCart;
+
     passport.authenticate("local", {
         failureRedirect: "/users/login",
         failureFlash: true
@@ -58,15 +58,18 @@ const loginPostReq = ((req, res) => {
             if (!findUserCart) {
                 const cart = new cartModel({
                     _id: currentUser._id,
-                    name: currentUser.name,
+                    name: currentUser.name
                 });
                 const createCart = await cart.save();
                 console.log("Empty shopping cart created for current user: ", createCart);
             }
+
             //If session data is present then add the session data to current user shoppingCart
             if (sessionData) {
                 for (let i = 0; i < sessionData.cartItems.length; i++) {
-                    const updateCart = await cartModel.updateOne({ _id: currentUser._id }, {
+                    const updateCart = await cartModel.updateOne({
+                        _id: currentUser._id
+                    }, {
                         $addToSet: { cartItems: sessionData.cartItems[i] }
                     });
                     console.log("Session data updated in current user cart status: ", updateCart);

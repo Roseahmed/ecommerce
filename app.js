@@ -10,10 +10,8 @@ const flash = require("connect-flash");
 const app = express();
 const port = 3000;
 
-// config passport
-// require("./controllers/passport")(passport);
-const LocalStrategy = require("./controllers/passport");
-LocalStrategy(passport);
+// config passport-Local_Strategy
+require("./config/passport")(passport);
 
 //common middleware
 app.use(express.static(__dirname + "/public"));

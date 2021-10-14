@@ -1,9 +1,9 @@
-const bookModel = require("../models/bookModel");
+const itemModel = require("../models/itemModel");
 const customerModel = require("../models/customerModel");
 const passport = require("passport");
 
 const fetchAll = (req, res) => {
-    bookModel.find()
+    itemModel.find()
         .then((result) => {
             if (req.isAuthenticated()) {
                 return res.render("index", { items: result, user: req.user.name });
