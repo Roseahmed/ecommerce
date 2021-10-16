@@ -62,8 +62,10 @@ const createOrder = async(req, res) => {
             console.log(err);
         }
     } else {
-        console.log("Anonymous user.");
-        res.redirect("/users/login");
+        console.log("Login to buy products");
+        req.flash("error", "Login to buy products");
+        req.flash("oldUrl", "/cart/");
+        res.redirect("/user/login");
     }
 }
 

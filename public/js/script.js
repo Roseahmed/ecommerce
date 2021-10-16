@@ -53,7 +53,7 @@ forms.forEach((form) => {
             .then((result) => {
                 console.log(result);
                 if (!result.data.status) {
-                    alert(result.data.msg + " Available Stock:" + result.data.totalStock);
+                    alert(result.data.msg + result.data.totalStock);
                 }
                 window.location.reload();
             })

@@ -27,7 +27,7 @@ const registerPostReq = (req, res) => {
         .then((result) => {
             console.log("New customer registerd successfully with following details: ");
             console.log(result);
-            res.redirect('/users/login');
+            res.redirect('/user/login');
         })
         .catch((err) => {
             console.log("Singup post method error: ", err);
@@ -43,14 +43,14 @@ const loginGetReq = (req, res) => {
 const loginPostReq = ((req, res) => {
 
     passport.authenticate("local", {
-        failureRedirect: "/users/login",
+        failureRedirect: "/user/login",
         failureFlash: true
     })(req, res, async() => {
         //If successfully authenticated this function execute
         try {
             let sessionData = req.session.shoppingCart;
             req.session.shoppingCart = undefined;
-            console.log("Session data: ", sessionData);
+            // console.log("Session data: ", sessionData);
             const currentUser = req.user;
             const findUserCart = await cartModel.findById(currentUser._id, "_id");
 
@@ -75,6 +75,13 @@ const loginPostReq = ((req, res) => {
                     console.log("Session data updated in current user cart status: ", updateCart);
                 }
             }
+            let oldUrl = req.flash("oldUrl");
+            console.log("OldUrl: ", oldUrl);
+            if (oldUrl.length > 0) {
+                res.redirect(oldUrl);
+                oldUrl = [];
+                return;
+            }
             res.redirect("/");
 
         } catch (err) {
@@ -86,7 +93,7 @@ const loginPostReq = ((req, res) => {
 // redirect method of passport authenticate function
 // const loginPostReq = (passport.authenticate("local", {
 //     successRedirect: "/",
-//     failureRedirect: "/users/login",
+//     failureRedirect: "/user/login",
 //     failureFlash: true,
 //     successFlash: true
 // }));
@@ -99,7 +106,7 @@ const loginPostReq = ((req, res) => {
 //         if (err) { return next(err) }
 //         if (user === false) {
 //             req.flash("error", info.message);
-//             return res.redirect("/users/login");
+//             return res.redirect("/user/login");
 //         }
 //         req.logIn(user, (error) => {
 //             if (error) { return next(error) }

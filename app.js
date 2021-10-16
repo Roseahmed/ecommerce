@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const ejs = require("ejs");
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const passport = require("passport");
@@ -58,9 +58,9 @@ app.use(passport.session());
 
 //////////////////////////////Routes///////////////////////////////////////////
 app.use(require("./routes/homeRoute"));
-app.use("/users", require("./routes/usersRoutes"));
+app.use("/user", require("./routes/usersRoutes"));
 app.use("/cart", require("./routes/cartRoutes"));
-app.use("/order", require("./routes/orderRoutes"));
+app.use("/buy", require("./routes/orderRoutes"));
 
 
 // app.post('/order', (req, res) => {

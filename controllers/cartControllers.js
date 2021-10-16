@@ -4,12 +4,12 @@ const cartModel = require("../models/cartModel");
 
 const fetchAll = async(req, res) => {
     try {
+        // for authenticated user
         if (req.isAuthenticated()) {
             const currentUser = req.user;
-            // console.log(currentUser.id);
             const userCart = await cartModel.findById(currentUser._id);
 
-            //aggreagate method to find the totalCart amount
+            //aggreagate method to find the total cart items amount
             const totalAmount = await cartModel.aggregate([
                 { $match: { _id: currentUser._id } },
                 {
@@ -29,13 +29,24 @@ const fetchAll = async(req, res) => {
                     }
                 }
             ]);
+            console.log("Shopping cart of authenticated user");
             // console.log("Current user cartItems:", userCart);
-            console.log('Total amount: ', totalAmount);
+            // console.log('Total amount: ', totalAmount);
             res.render('cart', { user: currentUser.name, items: userCart, totalAmount: totalAmount });
         } else {
-            const sessionShoppingCart = req.session.shoppingCart;
-            // console.log("Items in current session: ", sessionShoppingCart);
-            res.render('cart', { user: "", items: sessionShoppingCart, totalAmount: [{}] });
+            // for annoymous user
+            const shoppingCart = req.session.shoppingCart;
+            let total = 0;
+            //find the total cart items amount
+            if (shoppingCart) {
+                shoppingCart.cartItems.forEach((item) => {
+                    total = total + (item.price * item.quantity);
+                });
+            }
+            console.log("Anonymous user shopping cart...");
+            // console.log("Items in shopping cart: ", shoppingCart);
+            // console.log("Total amount of items: ", total);
+            res.render('cart', { user: "", items: shoppingCart, totalAmount: [{ total }] });
         }
     } catch (err) {
         console.log(err);
@@ -45,12 +56,12 @@ const fetchAll = async(req, res) => {
 const addCartItems = async(req, res) => {
     try {
         const reqItemId = req.params.id;
-        const foundItem = await itemModel.findById(reqItemId, '_id name descp price type ');
-        // console.log("foundItem);
+        const foundItem = await itemModel.findById(reqItemId, '-stock');
+        // for authenticated users
         if (req.isAuthenticated()) {
 
             const currentUser = req.user._id;
-            // add the cart items with requested item
+            // add requested item to current user cartModel
             const cardUpdate = await cartModel.updateOne({
                 _id: currentUser
             }, {
@@ -76,19 +87,20 @@ const addCartItems = async(req, res) => {
                 type: foundItem.type,
                 quantity: 1
             };
-            // first check if the session data is defined or not if not then create the session data
+            // first check if the session data is defined or not if not then create the session data and add the item to session data
             if (typeof sessionData === "undefined") {
                 req.session.shoppingCart = { cartItems: [cartItems] };
                 console.log("Shopping cart created with details: ", cartItems);
                 return res.json({ msg: true });
             }
-            // second if session data is defined then check if requested items is already defined in current session data 
+            // second if session data is defined then check if requested item is already present in current session data 
             for (let i = 0; i < sessionData.cartItems.length; i++) {
                 if (sessionData.cartItems[i]._id === reqItemId) {
                     console.log("Items already present in shopping cart");
                     return res.json({ msg: false });
                 }
             }
+            //add requested item to session data
             req.session.shoppingCart.cartItems.push(cartItems);
             console.log("Item added in shopping cart and details: ", cartItems);
             res.json({ msg: true });
@@ -102,9 +114,16 @@ const addCartItems = async(req, res) => {
 
 const delCartItems = (req, res) => {
     const reqItemId = req.params.id;
+    // for authenticated users
     if (req.isAuthenticated()) {
-        const currentUser = req.user._id;
-        cartModel.updateOne({ _id: currentUser }, { $pull: { cartItems: { _id: reqItemId } } })
+        const currentUser = req.user;
+        cartModel.updateOne({
+                _id: currentUser._id
+            }, {
+                $pull: {
+                    cartItems: { _id: reqItemId }
+                }
+            })
             .then((deleteCount) => {
                 console.log('Card item delete status:', deleteCount);
                 res.json(deleteCount);
@@ -132,20 +151,21 @@ const updateQuantity = async(req, res) => {
     // console.log("Requested itemId: ", reqItemId);
     // console.log("Quantity: ", reqQuantity);
     try {
-        //check the total stock avaiable
+        //check if the requested item quantity in less or equal to the total stock avaiable
         const totalStock = await itemModel.findOne({ _id: reqItemId }, "-_id stock");
         if (reqQuantity > totalStock.stock) {
-            console.log("Request quantity unavaiable");
+            console.log("Request quantity is greater than total stock,Available stock = ", totalStock);
             return res.json({
-                msg: "Requested quantity unavailable!!!",
+                msg: "Requested quantity is greater than total stock,Available stock = ",
                 status: false,
                 totalStock: totalStock.stock
             });
         }
+        //for authenticated user
         if (req.isAuthenticated()) {
-            const currentUser = req.user._id;
+            const currentUser = req.user;
             const update = await cartModel.updateOne({
-                _id: currentUser,
+                _id: currentUser._id,
                 "cartItems._id": reqItemId
             }, {
                 $set: { 'cartItems.$.quantity': reqQuantity }
