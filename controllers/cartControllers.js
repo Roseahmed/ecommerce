@@ -63,9 +63,12 @@ const addCartItems = async(req, res) => {
             const currentUser = req.user._id;
             // add requested item to current user cartModel
             const cardUpdate = await cartModel.updateOne({
-                _id: currentUser
+                _id: currentUser,
+                'cartItems._id': {
+                    '$ne': foundItem._id
+                }
             }, {
-                $addToSet: {
+                $push: {
                     cartItems: foundItem
                 }
             });
@@ -121,7 +124,9 @@ const delCartItems = (req, res) => {
                 _id: currentUser._id
             }, {
                 $pull: {
-                    cartItems: { _id: reqItemId }
+                    cartItems: {
+                        _id: reqItemId
+                    }
                 }
             })
             .then((deleteCount) => {

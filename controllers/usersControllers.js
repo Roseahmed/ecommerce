@@ -68,9 +68,14 @@ const loginPostReq = ((req, res) => {
             if (sessionData) {
                 for (let i = 0; i < sessionData.cartItems.length; i++) {
                     const updateCart = await cartModel.updateOne({
-                        _id: currentUser._id
+                        _id: currentUser._id,
+                        'cartItems._id': {
+                            '$ne': sessionData.cartItems[i]._id
+                        }
                     }, {
-                        $addToSet: { cartItems: sessionData.cartItems[i] }
+                        $push: {
+                            cartItems: sessionData.cartItems[i]
+                        }
                     });
                     console.log("Session data updated in current user cart status: ", updateCart);
                 }
