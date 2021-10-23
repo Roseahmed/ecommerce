@@ -1,7 +1,8 @@
-const customerModel = require("../models/customerModel");
-const cartModel = require("../models/cartModel");
 const bcrypt = require("bcrypt");
 const passport = require("passport");
+const customerModel = require("../models/customerModel");
+const cartModel = require("../models/cartModel");
+const orderModel = require("../models/orderModel");
 const { deleteOne, findById, updateOne } = require("../models/customerModel");
 const saltRounds = 6;
 
@@ -126,10 +127,41 @@ const logout = (req, res) => {
     res.redirect("/");
 }
 
+const getProfile = async(req, res) => {
+    if (req.isAuthenticated()) {
+        res.send("Welcome to your profile.");
+        return;
+    }
+    res.redirect("/user/login");
+}
+
+const getOrders = async(req, res) => {
+    if (req.isAuthenticated()) {
+        const currentUser = req.user;
+        orderModel.findOne({
+                _id: currentUser._id
+            }, '-_id -name')
+            .then((result) => {
+                console.log(result);
+                res.json(result);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+        return;
+    }
+    req.flash("error", "Login to view orders");
+    req.flash("oldUrl", req.originalUrl);
+    console.log("Login to view orders");
+    res.redirect("/user/login");
+}
+
 module.exports = {
     loginGetReq,
     loginPostReq,
     registerGetReq,
     registerPostReq,
-    logout
+    logout,
+    getProfile,
+    getOrders
 }

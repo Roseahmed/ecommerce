@@ -1,4 +1,4 @@
-//fuctions of homepage 
+//add shopping cart items 
 function addCartItems(id) {
     axios.patch(`/cart/${id}`)
         .then((info) => {
@@ -22,7 +22,7 @@ function addCartItems(id) {
         });
 }
 
-//functions of cart page
+//Remove shopping cart items
 function deleteItem(id) {
     console.log(id);
     axios.delete(`/cart/${id}`)
@@ -36,19 +36,52 @@ function deleteItem(id) {
 }
 
 // update quantity of cart items
-const forms = document.querySelectorAll(".form");
-forms.forEach((form) => {
-    form.addEventListener("submit", (e) => {
+// const forms = document.querySelectorAll(".form");
+// forms.forEach((form) => {
+//     form.addEventListener("submit", (e) => {
+//         e.preventDefault();
+//         const formData = new FormData(e.target);
+//         const searchParams = new URLSearchParams();
+//         for (const pair of formData) {
+//             searchParams.append(pair[0], pair[1]);
+//         }
+//         axios({
+//                 method: "put",
+//                 url: e.target.action,
+//                 data: searchParams
+//             })
+//             .then((result) => {
+//                 console.log(result);
+//                 if (!result.data.status) {
+//                     alert(result.data.msg + result.data.totalStock);
+//                 }
+//                 window.location.reload();
+//             })
+//             .catch((err) => {
+//                 console.log(err);
+//             })
+//     });
+// });
+
+//update quantity of cart products
+const updateQtys = document.querySelectorAll(".update-quantity");
+updateQtys.forEach((updateQty) => {
+    updateQty.addEventListener("input", (e) => {
         e.preventDefault();
-        const formData = new FormData(e.target);
-        const searchParams = new URLSearchParams();
-        for (const pair of formData) {
-            searchParams.append(pair[0], pair[1]);
+        const productVal = e.target.value;
+        if (productVal <= 0) {
+            e.target.value = null;
+            console.log("Quantity cann't be less than 0");
+            return;
         }
+        const quantity = { quantity: productVal };
+        const productId = updateQty.lastElementChild.value;
+        // console.log("ProductId: ", productId);
+        // console.log("Quantity: ", qty);
         axios({
                 method: "put",
-                url: e.target.action,
-                data: searchParams
+                url: `cart/${productId}`,
+                data: quantity,
             })
             .then((result) => {
                 console.log(result);
@@ -59,8 +92,15 @@ forms.forEach((form) => {
             })
             .catch((err) => {
                 console.log(err);
-            })
+            });
     });
+});
+
+//total price based on quantity
+const quantites = document.querySelectorAll(".item-quantity");
+quantites.forEach((quantity) => {
+    const totalQuantity = quantity.value;
+    const price = document.querySelectorAll("");
 });
 
 //razor payment intigration 

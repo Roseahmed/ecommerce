@@ -154,7 +154,7 @@ const updateQuantity = async(req, res) => {
     const reqItemId = req.params.id;
     const reqQuantity = Number(req.body.quantity);
     // console.log("Requested itemId: ", reqItemId);
-    // console.log("Quantity: ", reqQuantity);
+    console.log("Quantity: ", reqQuantity);
     try {
         //check if the requested item quantity in less or equal to the total stock avaiable
         const totalStock = await itemModel.findOne({ _id: reqItemId }, "-_id stock");
