@@ -47,15 +47,17 @@ const loginPostReq = ((req, res) => {
         failureRedirect: "/user/login",
         failureFlash: true
     })(req, res, async() => {
-        //If successfully authenticated this function execute
+        // If successfully authenticated this function execute
         try {
             let sessionData = req.session.shoppingCart;
             req.session.shoppingCart = undefined;
-            // console.log("Session data: ", sessionData);
+            // console.log("Session shopping cart items: ", sessionData);
             const currentUser = req.user;
+
+            // check cart model is defined for current user
             const findUserCart = await cartModel.findById(currentUser._id, "_id");
 
-            //create empty shopping cart if shopping cart is not defined for current user.
+            // if cart model is not defined for current user then create
             if (!findUserCart) {
                 const cart = new cartModel({
                     _id: currentUser._id,
@@ -65,7 +67,7 @@ const loginPostReq = ((req, res) => {
                 console.log("Empty shopping cart created for current user: ", createCart);
             }
 
-            //If session data is present then add the session data to current user shoppingCart
+            // if session shopping cart items is present then add items to current user shoppingCart
             if (sessionData) {
                 for (let i = 0; i < sessionData.cartItems.length; i++) {
                     const updateCart = await cartModel.updateOne({
@@ -81,8 +83,10 @@ const loginPostReq = ((req, res) => {
                     console.log("Session data updated in current user cart status: ", updateCart);
                 }
             }
+
+            // redirect to appropriate routes
             let oldUrl = req.flash("oldUrl");
-            console.log("OldUrl: ", oldUrl);
+            // console.log("OldUrl: ", oldUrl);
             if (oldUrl.length > 0) {
                 res.redirect(oldUrl);
                 oldUrl = [];
@@ -150,6 +154,7 @@ const getOrders = async(req, res) => {
             });
         return;
     }
+
     req.flash("error", "Login to view orders");
     req.flash("oldUrl", req.originalUrl);
     console.log("Login to view orders");

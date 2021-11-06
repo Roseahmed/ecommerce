@@ -10,15 +10,27 @@ const orderSchema = new mongoose.Schema({
         amount: { type: Number },
         createdAt: { type: Date },
         status: { type: String },
+        shippingDetails: {
+            _id: false,
+            buyerName: { type: String },
+            contactNo: { type: Number },
+            apartment: { type: String },
+            email: { type: String },
+            city: { type: String },
+            pincode: { type: Number },
+            state: { type: String }
+        },
         products: [{
             _id: { type: String },
             name: { type: String },
-            imageUrl: { type: String },
+            imageURL: { type: String },
             descp: { type: String },
-            price: { type: String },
+            price: { type: Number },
             type: { type: String },
-            quantity: { type: Number }
-        }]
+            quantity: { type: Number },
+            totalPrice: { type: Number }
+        }],
+
     }]
 });
 

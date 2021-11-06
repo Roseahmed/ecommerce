@@ -17,6 +17,10 @@
                 <div class="row">
                     <aside class="col-lg-9">
                         <div class="card">
+                            <div class="card-heading">
+                                <h2>My Cart</h2>
+                                <hr>
+                            </div>
                             <div class="table-responsive">
                                 <table class="table table-borderless table-shopping-cart">
                                     <thead class="text-muted">
@@ -24,7 +28,6 @@
                                             <th scope="col">Product</th>
                                             <th scope="col" width="120">Quantity</th>
                                             <th scope="col" width="120">Price</th>
-                                            <th scope="col" class="text-right d-none d-md-block" width="200"></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -34,7 +37,7 @@
                                                     <!-- product details -->
                                                     <figure class="itemside align-items-center">
                                                         <div class="aside">
-                                                            <img src="" class="img-sm" alt="product-Image">
+                                                            <img src="<%=item.imageURL%>" class="img-sm" alt="product-Image">
                                                         </div>
                                                         <figcaption class="info">
                                                             <a href="#" class="title text-dark">
@@ -57,7 +60,7 @@
                                                 <td>
                                                     <!-- product price -->
                                                     <div class="product-price price-wrap">
-                                                        <var id="total-price" class="price"> &#x20b9;10.00</var>
+                                                        <var id="total-price" class="price"> &#x20b9;<%=item.totalPrice%></var>
                                                         <small class="text-muted">&#x20b9;<%=item.price%> each</small>
                                                     </div>
                                                 </td>
@@ -75,30 +78,25 @@
                     <aside class="col-lg-3">
                         <div class="card">
                             <div class="card-body">
-                                <dl class="dlist-align">
-                                    <dt>Total price: </dt>
-                                    <dd class="text-right ml-3"> &#x20b9;
-                                        <%=totalAmount[0].total%>
+                                <dl class="d-flex justify-content-between">
+                                    <dt>Items: </dt>
+                                    <dd> &#x20b9;
+                                        <%=totalAmount%>
                                     </dd>
                                 </dl>
-                                <dl class="dlist-align">
-                                    <dt>Shipping rate:</dt>
-                                    <dd class="text-right text-danger ml-3"> &#x20b9; 10</dd>
+                                <dl class="d-flex justify-content-between">
+                                    <dt>Delivery Charge:</dt>
+                                    <dd> Free</dd>
                                 </dl>
-                                <dl class="dlist-align">
+                                <dl class="d-flex justify-content-between text-danger">
                                     <dt>Total: </dt>
-                                    <dd class="text-right text-dark b ml-3">
-                                        <strong id="total-amount"> &#x20b9; <%=totalAmount[0].total%></strong>
+                                    <dd>
+                                        <strong id="total-amount"> &#x20b9; <%=totalAmount%></strong>
                                     </dd>
                                 </dl>
                                 <hr>
-                                <div class="checkout">
-                                    <form action="/buy" method="post">
-                                        <input type="hidden" name="amount" value="<%=totalAmount[0].total %>">
-                                        <button type="submit" class="btn btn-out btn-primary btn-main">Checkout</button>
-                                    </form>
-                                </div>
-                                <a href="/" class="btn btn-out btn-success btn-main mt-2">Continue Shopping</a>
+                                <a href="/checkout/shipping-address" class="btn btn-success btn-main">Checkout</a>
+                                <a href="/" class="btn btn-success btn-main mt-2">Continue Shopping</a>
                             </div>
                         </div>
                     </aside>

@@ -60,7 +60,7 @@ app.use(passport.session());
 app.use(require("./routes/homeRoute"));
 app.use("/user", require("./routes/usersRoutes"));
 app.use("/cart", require("./routes/cartRoutes"));
-app.use("/buy", require("./routes/orderRoutes"));
+app.use("/checkout", require("./routes/checkoutRoutes"));
 
 
 // app.post('/order', (req, res) => {

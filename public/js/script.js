@@ -13,7 +13,7 @@ function addCartItems(id) {
             } else if (info.data.msg === false) {
                 alert("Items already present in current session data.")
             } else {
-                alert("New cartModel created for current user");
+                alert("Something went wrong!!!");
             }
         })
         .catch((err) => {
@@ -78,9 +78,10 @@ updateQtys.forEach((updateQty) => {
         const productId = updateQty.lastElementChild.value;
         // console.log("ProductId: ", productId);
         // console.log("Quantity: ", qty);
+
         axios({
                 method: "put",
-                url: `cart/${productId}`,
+                url: `/cart/${productId}`,
                 data: quantity,
             })
             .then((result) => {
@@ -96,55 +97,44 @@ updateQtys.forEach((updateQty) => {
     });
 });
 
-//total price based on quantity
-const quantites = document.querySelectorAll(".item-quantity");
-quantites.forEach((quantity) => {
-    const totalQuantity = quantity.value;
-    const price = document.querySelectorAll("");
+//razorpay payment intigration for creating order and payments
+const orderPay = document.getElementById("rzp-button1");
+orderPay.addEventListener("click", (e) => {
+    axios({
+            method: "POST",
+            url: "/checkout/place-order"
+        })
+        .then((res) => {
+            console.log(res);
+            var options = {
+                "key": "rzp_test_g6xlzomJJhv6EL", // Enter the Key ID generated from the Dashboard 
+                "amount": res.data.order.amount,
+                "currency": "INR",
+                "name": "Rose Private Limited",
+                "description": "Test Transaction",
+                "image": "https://example.com/your_logo",
+                "order_id": res.data.order.id, //This is a sample Order ID. Pass the `id` obtained in the response of Step1
+                "callback_url": "/checkout/verify-signature",
+                "prefill": {
+                    "name": res.data.details.name,
+                    "email": res.data.details.email,
+                    "contact": res.data.details.contact_no
+                },
+                "notes": {
+                    "address": "Razorpay Corporate Office"
+                },
+                // "theme": {
+                //     "color": "#3399cc"
+                // }
+            };
+            return options;
+        })
+        .then((options) => {
+            var rzp1 = new Razorpay(options);
+            rzp1.open();
+            e.preventDefault();
+        })
+        .catch((err) => {
+            console.log(err);
+        });
 });
-
-//razor payment intigration 
-// const payment = document.querySelector(".payment");
-// payment.addEventListener("submit", (e) => {
-//     e.preventDefault();
-//     const formData = new FormData(e.target);
-//     const searchParams = new URLSearchParams();
-//     for (let pair of formData) {
-//         searchParams.append(pair[0], pair[1]);
-//     }
-//     axios({
-//             method: "POST",
-//             url: "/order",
-//             data: searchParams
-//         })
-//         .then((res) => {
-//             console.log(res);
-//             var options = {
-//                 "key": "rzp_test_g6xlzomJJhv6EL", // Enter the Key ID generated from the Dashboard 
-//                 "amount": "50000",
-//                 "currency": "INR",
-//                 "name": "Rose Private Limited",
-//                 "description": "Test Transaction",
-//                 "image": "https://example.com/your_logo",
-//                 "order_id": res.data.id, //This is a sample Order ID. Pass the `id` obtained in the response of Step1
-//                 "callback_url": "/order/verify",
-//                 // "prefill": { "name": "Gaurav Kumar", 
-//                 // "email": "gaurav.kumar@example.com", 
-//                 // "contact": "9999999999" },
-//                 "notes": {
-//                     "address": "Razorpay Corporate Office"
-//                 },
-//                 "theme": {
-//                     "color": "#3399cc"
-//                 }
-//             };
-//             var rzp1 = new Razorpay(options);
-//             document.getElementById('rzp-button1').onclick = function(e) {
-//                 rzp1.open();
-//                 e.preventDefault();
-//             }
-//         })
-//         .catch((err) => {
-//             console.log(err);
-//         });
-// });

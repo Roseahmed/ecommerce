@@ -6,11 +6,12 @@ const cartSchema = new mongoose.Schema({
     cartItems: [{
         _id: { type: mongoose.Schema.Types.ObjectId },
         name: { type: String },
-        imageUrl: { type: String },
+        imageURL: { type: String },
         descp: { type: String },
         price: { type: Number },
         type: { type: String },
-        quantity: { type: Number, default: 1 }
+        quantity: { type: Number },
+        totalPrice: { type: Number }
     }]
 });
 
