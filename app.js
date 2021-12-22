@@ -20,7 +20,7 @@ app.use(express.json());
 app.set("view engine", "ejs");
 app.use(flash());
 
-const mongoUrl = "mongodb://localhost:27017/ecommerceDB";
+const mongoUrl = "mongodb://127.0.0.1:27017/ecommerceDB";
 //connect db
 mongoose.connect(mongoUrl, {
     useNewUrlparser: true,
