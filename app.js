@@ -22,35 +22,41 @@ app.use(flash());
 
 const mongoUrl = "mongodb://127.0.0.1:27017/ecommerceDB";
 //connect db
-mongoose.connect(mongoUrl, {
+mongoose.connect(
+  mongoUrl,
+  {
     useNewUrlparser: true,
-    useUnifiedTopology: true
-}, (err) => {
+    useUnifiedTopology: true,
+  },
+  (err) => {
     if (!err) {
-        console.log('Database connected.');
+      console.log("Database connected.");
     } else {
-        console.log(err);
+      console.log(err);
     }
-});
+  }
+);
 
 //store session data in database
 const sessionStore = MongoStore.create({
-    mongoUrl: mongoUrl,
-    collectionName: "sessions",
-    autoRemove: "native"
+  mongoUrl: mongoUrl,
+  collectionName: "sessions",
+  autoRemove: "native",
 });
 
 //create session
-app.use(session({
-    name: 'test-cookie',
-    secret: process.env.SESSION_SECRET,
+app.use(
+  session({
+    name: "test-cookie",
+    secret: process.env.SESSION_SECRET || "session_secret",
     resave: false,
     saveUninitialized: true,
     store: sessionStore,
     cookie: {
-        maxAge: 31536000
-    }
-}));
+      maxAge: 31536000,
+    },
+  })
+);
 
 //passport middleware
 app.use(passport.initialize());
@@ -61,7 +67,6 @@ app.use(require("./routes/homeRoute"));
 app.use("/user", require("./routes/usersRoutes"));
 app.use("/cart", require("./routes/cartRoutes"));
 app.use("/checkout", require("./routes/checkoutRoutes"));
-
 
 // app.post('/order', (req, res) => {
 //     const options = {
@@ -94,7 +99,7 @@ app.use("/checkout", require("./routes/checkoutRoutes"));
 // });
 
 app.listen(port, (err) => {
-    if (!err) {
-        console.log('Server started at port:', port);
-    }
+  if (!err) {
+    console.log("Server started at port:", port);
+  }
 });
